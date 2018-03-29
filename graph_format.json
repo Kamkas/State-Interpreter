@@ -1,0 +1,78 @@
+[
+	{
+		"state": "S1",
+		"output": [],
+		"conditions": {
+			"1": "S2"
+		}
+	},
+	{
+		"state": "S2",
+		"output": ["Y1", "Y2", "Y3"],
+		"conditions": {
+			"X1": "S3",
+			"!X1": "S10"
+		}
+	},
+	{
+		"state": "S3",
+		"output": ["Y4", "Y5"],
+		"conditions": {
+			"!X1": "S4",
+			"X1": "S5"
+		}
+	},
+	{
+		"state": "S4",
+		"output": ["Y3"],
+		"conditions": {
+			"1": "S6"
+		}
+	},
+	{
+		"state": "S5",
+		"output": ["Y6"],
+		"conditions": {
+			"1": "S6"
+		}
+	},{
+		"state": "S6",
+		"output": ["Y7", "Y4", "Y8"],
+		"conditions": {
+			"!X1 !X2": "S4",
+			"X1 !X2": "S5",
+			"X2": "S7"
+		}
+	},
+	{
+		"state": "S7",
+		"output": ["Y9"],
+		"conditions": {
+			"X3": "S8",
+			"!X3 X4": "S9",
+			"!X3 !X4": "S1"
+		}
+	},
+	{
+		"state": "S8",
+		"output": ["Y10"],
+		"conditions": {
+			"X4": "S9",
+			"!X4": "S1"
+		}
+	},
+	{
+		"state": "S9",
+		"output": ["Y11"],
+		"conditions": {
+			"1": "S1"
+		}
+	},
+	{
+		"state": "S10",
+		"output": ["Y12"],
+		"conditions": {
+			"1": "S1"
+		}
+	}
+]
