@@ -1,4 +1,5 @@
 import json
+import csv
 
 
 class StateInterpreter:
@@ -9,6 +10,7 @@ class StateInterpreter:
         self.in_values = []
         self.uniq_in_values = []
         self.out_values = []
+        self.uniq_out_values = {}
         self.condition_values = []
 
     def read_graph(self, filename):
@@ -36,11 +38,35 @@ class StateInterpreter:
             self.in_values[index] = s_vals
 
     def read_matrix(self, filename):
+        self.graph = []
         with open(filename, 'r') as f:
-            string = f.read()
-            f.close()
+            reader = csv.reader(f, delimiter=',')
+            tmp = [row for row in reader]
 
-        self.matrix = [[int(val) for val in l.split(',')] for l in string.split('\n')]
+        for el in tmp[0][1:-1]:
+            if el not in self.states:
+                self.states.append(el)
+        for index in range(1, len(tmp)):
+            if tmp[index][0] not in self.states:
+                raise Exception('{} state is not defined in matrix format'.format(tmp[index][0]))
+
+        for row in tmp[1:]:
+            state = {"state": row[0], "output": [], "conditions": {}}
+            for o_vals in row[-1:][0].split(','):
+                if o_vals is not '':
+                    state["output"].append(o_vals)
+                    if o_vals not in self.out_values:
+                        self.out_values.append(o_vals)
+            for idx, el in enumerate(row[1:-1]):
+                if el is not '':
+                    state["conditions"].update({el: self.states[idx]})
+                    if el is not '1':
+                        s_vals = el.split(" ")
+                        for item in s_vals:
+                            if not item.startswith('!', 0) and item not in self.uniq_in_values:
+                                self.uniq_in_values.append(item)
+                        self.in_values.append(s_vals)
+            self.graph.append(state)
 
     def set_condition(self, string):
         uniq_in_val_dict = {}
@@ -54,6 +80,15 @@ class StateInterpreter:
             if state["state"] == state_name:
                 return state
 
+    def __get_output_vals(self, path):
+        for out_val in self.out_values:
+            self.uniq_out_values.update({out_val: 0})
+
+        for state_name in path:
+            state = self.__get_state(state_name)
+            for o_vals in state['output']:
+                self.uniq_out_values[o_vals] = 1
+
     def run(self, start_state="S1"):
         path = []
         cycle = True
@@ -65,6 +100,8 @@ class StateInterpreter:
                 next_state = cur_state['conditions']['1']
                 path.append(next_state)
                 if next_state == start_state:
+                    break
+                if path.count(next_state) > 10:
                     break
             else:
                 jmps = []
@@ -82,16 +119,23 @@ class StateInterpreter:
                     path.append(next_state)
                     if next_state == start_state:
                         break
+                    if path.count(next_state) > 10:
+                        break
                 elif jmps.count(1) == 0:
                     break
                 elif jmps.count(1) >= 1:
                     break
+        self.__get_output_vals(path)
         return path
 
 
 if __name__ == '__main__':
-    s = StateInterpreter()
-    s.read_graph('graph_format.json')
-    s.set_condition('1111')
-    p = s.run()
+    s1 = StateInterpreter()
+    s2 = StateInterpreter()
+    s1.read_matrix('var1.csv')
+    s2.read_graph('graph_format.json')
+    s1.set_condition('1111')
+    s2.set_condition('1111')
+    p1 = s1.run()
+    p2 = s2.run()
     pass
